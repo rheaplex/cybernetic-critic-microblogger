@@ -1,0 +1,13 @@
+#!/bin/sh
+
+if [ $# -ne 2 ]; then 
+     echo "Cannot start. Pass user and password as args 1 and 2." > \
+	 /var/log/cybercritic-microblogger.log
+     exit 1
+fi
+
+detachtty --dribble-file /var/log/cybercritic-microblogger-dribble \
+	  --log-file /var/log/cybercritic-microblogger.log \
+	  --pid-file /var/run/cybercritic-microblogger.pid \
+  	  /var/run/cybercritic-microblogger-socket \
+    ./cybercritic-microblogger $1 $2

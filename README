@@ -1,0 +1,15 @@
+To install, make sure you have sbcl installed -
+
+http://www.sbcl.org/
+
+Then make sure you have microblog-bot and cl-twit installed.
+
+To make, run make.
+
+To run, call cybercritic-microblogger with the identi.ca usrname and password
+for the account you wish to post to as the first and second arguments. 
+e.g. ./cybercritic-microblogger username password
+
+To run as a daemon, call start-cybercritic-microblogger with the username
+and password. You can set this as an @reboot crontab entry to ensure that
+cybercritic starts as boot time.
