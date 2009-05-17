@@ -19,11 +19,10 @@
 
 (in-package #:cl-user)
 
-;; Load libraries
-
+;; Load libraries despite asdf0
 (require 'asdf)
-(load "../microblog-bot" asdf:*central-registry*)
 (load "../microblog-bot/cl-twit/cl-twit.asd")
+(load "../microblog-bot/microblog-bot.asd")
 (asdf:operate 'asdf:load-op :cl-twit)
 (asdf:operate 'asdf:load-op :microblog-bot)
 (asdf:operate 'asdf:load-op :cybercritic)
