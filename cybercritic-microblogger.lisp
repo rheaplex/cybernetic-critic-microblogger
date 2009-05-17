@@ -19,28 +19,42 @@
 
 (in-package #:cybercritic)
 
-(defclass cybercritic-microblogger (microblog-bot:microblog-bot)
+(defclass cybercritic-microblogger (microblog-bot:microblog-follower-bot)
   ())
 
 (defmethod respond-to-mention ((bot cybercritic-microblogger) mention)
   "Respond to the mention by plugging the source."
-  (cl-twit:update (format nil "@~a Hi! You can see my source code here - http://robmyers.org/git/?p=cybercritic-microblogger.git" 
+  (cl-twit:update (format nil "@~a Hi! You can see my source code here - http://robmyers.org/git/?p=cybernetic-critic-microblogger.git" 
 			  (cl-twit:user-screen-name 
 			   (cl-twit:status-user mention)))))
 
 (defmethod periodic-task ((bot cybercritic-microblogger))
-  "Dent a critique of Cybernetic's most recent artworks."
-    (twit:update (generate-description)))
-       
-(defun run-microblog-bot (user password)
+  "Update the aesthetic and dent it."
+  (update-aesthetic)
+  (twit:update (describe-aesthetic)))
+
+(defmethod respond-to-message ((bot cybercritic-microblogger) mention)
+  "Respond to the artwork by critiquing it."
+  (cl-twit:update 
+   (format nil 
+	   (critique-artwork (cl-twit:status-text mention) 
+			     (format nil
+				     "http://identi.ca/notice/~a"
+				     (cl-twit:status-id mention))))))
+
+(defun run-cybercritic-bot (user password follow)
   (setf *random-state* (make-random-state t))
   (microblog-bot:set-microblog-service "http://identi.ca/api" "cybercritic")
+  (initialize-aesthetic)
   (let ((bot (make-instance 'cybercritic-microblogger
 			    :nickname user	    
-			    :password password)))
+			    :password password
+			    :follow-id follow)))
     (microblog-bot:run-bot bot)))
 
 (defun run ()
   "Configure and run the bot."
   (assert (>= (length sb-ext:*posix-argv*) 2))
-  (run-microblog-bot (second sb-ext:*posix-argv*) (third sb-ext:*posix-argv*)))
+  (run-cybercritic-bot (second sb-ext:*posix-argv*) 
+		       (third sb-ext:*posix-argv*) 
+		       (fourth sb-ext:*posix-argv*)))

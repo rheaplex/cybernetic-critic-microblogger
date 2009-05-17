@@ -168,15 +168,15 @@
 ;; Aesthetic
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defvar *properties* (make-hash-table :test 'equal)
+(defvar *aesthetic* (make-hash-table :test 'equal)
   "The properties of the aesthetic that the critic currently adheres to.")
 
-(defun list-properties ()
+(defun list-aesthetic ()
   "Gather the property names without their values."
-  (loop for key being each hash-key of *properties*
+  (loop for key being each hash-key of *aesthetic*
        collect key))
 
-(defun property-opinions ()
+(defun aesthetic-opinions ()
   "Sort the properties into likes and dislikes."
   (let ((likes '())
 	(dislikes '()))
@@ -184,18 +184,18 @@
 		 (if (>= val 0.0)
 		     (push key likes)
 		     (push key dislikes))) 
-     *properties*)
+     *aesthetic*)
     (values likes dislikes)))
 
-(defun describe-property-opinions ()
+(defun describe-aesthetic ()
   "Describe the current likes and dislikes."
   ;;FIXME - Replace the final comma with an and or ampersand.
-  (multiple-value-bind (likes dislikes) (property-opinions)
+  (multiple-value-bind (likes dislikes) (aesthetic-opinions)
     (format nil "I like~{ ~A~^,~}. I dislike~{ ~A~^,~}." likes dislikes)))
 
-(defun properties-count ()
-  "Get the current size of *properties*."
-  (hash-table-count *properties*))
+(defun aesthetic-size ()
+  "Get the current size of *aesthetic*."
+  (hash-table-count *aesthetic*))
 
 (defun new-property ()
   "Choose a new property."
@@ -208,7 +208,7 @@
 
 (defun set-property (prop)
   "Set valenced property."
-    (setf (gethash prop *properties*)
+    (setf (gethash prop *aesthetic*)
 	  (plus-or-minus-one)))
 
 (defun set-properties (props)
@@ -220,9 +220,9 @@
 
 (defparameter +max-properties+ 12)
 
-(defun initialize-properties ()
+(defun initialize-aesthetic ()
   "Generate an initial set of properties."
-  (setf *properties* (make-hash-table :test 'equal))
+  (setf *aesthetic* (make-hash-table :test 'equal))
   (set-properties (new-properties (random-range +min-properties+
 						+max-properties+))))
 
@@ -234,27 +234,33 @@
   "Delete 0+ properties, don't reduce properties below +min-properties+."
   ;;FIXME - Set the correct number here rather than checking with when
   (dolist (prop (choose-n-of (random +max-properties-to-mutate+)
-			     (list-properties)))
-    (when (> (properties-count) +min-properties+) 
-	       (remhash prop *properties*))))
+			     (list-aesthetic)))
+    (when (> (aesthetic-size) +min-properties+) 
+	       (remhash prop *aesthetic*))))
 
 (defun mutate-properties ()
   "Mutate zero or more properties."
   (dolist (prop (choose-n-of (random +max-properties-to-mutate+)
-			     (list-properties)))
-    (setf (gethash prop *properties*)
-	  (- (gethash prop *properties*))))) 
+			     (list-aesthetic)))
+    (setf (gethash prop *aesthetic*)
+	  (- (gethash prop *aesthetic*))))) 
 
 (defun add-properties ()
   "Add zero or more properties."
   (loop with remaining = (min (max +min-properties+ 
 				   (random +max-properties-to-add+))
-			      (- +max-properties+ (properties-count)))
+			      (- +max-properties+ (aesthetic-size)))
 	while (> remaining 0)
 	do (let ((prop (new-property)))
-	     (when (not (gethash prop *properties*))
+	     (when (not (gethash prop *aesthetic*))
 	       (set-property prop)
 	       (decf remaining)))))
+
+(defun update-aesthetic ()
+  "Update the aesthetic."
+  (delete-properties)
+  (mutate-properties)
+  (add-properties))
 
 ;; How to handle ambiguities? yellow vs sunset yellow?
 ;; Sort keys by length
@@ -266,14 +272,14 @@
 (defun score-artwork (artwork)
   "Process the string description of the artwork to generate a score."
   (let ((clean-artwork (string-downcase artwork)))
-    (loop for prop being each hash-key of *properties*
+    (loop for prop being each hash-key of *aesthetic*
        if (search prop clean-artwork)
-       sum (gethash prop *properties* 0))))
+       sum (gethash prop *aesthetic* 0))))
 
 (defun evaluate-artwork (artwork)
   "Set range to max of +/-1, probably less."
   (/ (score-artwork artwork)
-     (properties-count)))
+     (aesthetic-size)))
 
 (defun describe-artwork-evaluation (score)
   "Turn the -1.0..1.0 score into a verbal description."
