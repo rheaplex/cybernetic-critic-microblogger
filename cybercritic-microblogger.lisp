@@ -31,7 +31,12 @@
 (defmethod periodic-task ((bot cybercritic-microblogger))
   "Update the aesthetic and dent it."
   (update-aesthetic)
-  (twit:update (describe-aesthetic)))
+  (let ((description (describe-aesthetic)))
+    ;; Handle description being longer than the microblogging limit of 140 chars
+    (if (> (length description) 140)
+	(setf description 
+	      (format nil "~a..." (subseq description 0 137))))
+    (twit:update description)))
 
 (defmethod respond-to-message ((bot cybercritic-microblogger) mention)
   "Respond to the artwork by critiquing it."
@@ -54,7 +59,7 @@
 
 (defun run ()
   "Configure and run the bot."
-  (assert (>= (length sb-ext:*posix-argv*) 2))
+  (assert (>= (length sb-ext:*posix-argv*) 3))
   (run-cybercritic-bot (second sb-ext:*posix-argv*) 
 		       (third sb-ext:*posix-argv*) 
 		       (fourth sb-ext:*posix-argv*)))
