@@ -24,9 +24,10 @@
 
 (defmethod respond-to-mention ((bot cybercritic-microblogger) mention)
   "Respond to the mention by plugging the source."
-  (cl-twit:update (format nil "@~a Hi! You can see my source code here - http://robmyers.org/git/?p=cybernetic-critic-microblogger.git" 
-			  (cl-twit:user-screen-name 
-			   (cl-twit:status-user mention)))))
+  (ignore-errors
+    (cl-twit:update (format nil "@~a Hi! You can see my source code here - http://robmyers.org/git/?p=cybernetic-critic-microblogger.git" 
+			    (cl-twit:user-screen-name 
+			     (cl-twit:status-user mention))))))
 
 (defmethod periodic-task ((bot cybercritic-microblogger))
   "Update the aesthetic and dent it."
@@ -36,7 +37,11 @@
     (if (> (length description) 140)
 	(setf description 
 	      (format nil "~a..." (subseq description 0 137))))
-    (twit:update description)))
+    (handler-case 
+      (progn
+	(twit:update description)
+	t)
+      ( () nil))))
 
 (defmethod respond-to-message ((bot cybercritic-microblogger) mention)
   "Respond to the artwork by critiquing it."
